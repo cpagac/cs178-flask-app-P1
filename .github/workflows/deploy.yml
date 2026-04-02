@@ -41,7 +41,7 @@ jobs:
               -o StrictHostKeyChecking=no \
               -o ServerAliveInterval=60 \
               $USER@$HOST bash -s << 'REMOTE'
-          cd ~/cs178-flask-app
+          cd ~/cs178-flask-app-P1
           git pull origin main
           pkill -f "python3 flaskapp.py" || true
           sleep 2
