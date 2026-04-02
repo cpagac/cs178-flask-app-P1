@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>The Arena — Turing Test Game</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="container mt-5">
+        <h1>The Arena</h1>
+        <p class="text-muted">All snippets in the database — Human vs. AI content</p>
+        <a href="/" class="btn btn-secondary mb-3">← Back to Home</a>
+
+        {% if snippets %}
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Snippet</th>
+                    <th>Category</th>
+                    <th>Author</th>
+                    <th>Written By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for snippet in snippets %}
+                <tr>
+                    <td>{{ snippet.id }}</td>
+                    <td><pre style="white-space: pre-wrap; font-size: 0.85em;">{{ snippet.text }}</pre></td>
+                    <td>{{ snippet.category }}</td>
+                    <td>{{ snippet.author }}</td>
+                    <td>
+                        {% if snippet.is_ai %}
+                            <span class="badge badge-danger">AI</span>
+                        {% else %}
+                            <span class="badge badge-success">Human</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-warning">No snippets found. Check your database connection.</div>
+        {% endif %}
+    </div>
+</body>
+</html>

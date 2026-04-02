@@ -59,6 +59,15 @@ def display_users():
     users_list = (('John','Doe','Comedy'),('Jane', 'Doe','Drama'))
     return render_template('display_users.html', users = users_list)
 
+@app.route('/arena')
+def arena():
+    try:
+        snippets = get_all_snippets()
+    except Exception as e:
+        flash(f'Database error: {str(e)}', 'error')
+        snippets = []
+    return render_template('arena.html', snippets=snippets)
+
 
 # these two lines of code should always be the last in the file
 if __name__ == '__main__':

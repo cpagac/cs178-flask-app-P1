@@ -1,3 +1,4 @@
+-- NOTE THIS CODE WAS GENERATED THROUGH AI ASSIATNCENTCE
 -- schema.sql
 -- Turing Test Game — database schema and seed data
 -- Run with: mysql -h YOUR-RDS-ENDPOINT -u admin -p < schema.sql
