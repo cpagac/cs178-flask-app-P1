@@ -80,7 +80,7 @@ ProjectOne/
 The app is deployed on an AWS EC2 instance. To view the live version:
 
 ```
-http://[your-ec2-public-ip]:8080
+turingtest.colemanpagac.com
 ```
 
 ---
