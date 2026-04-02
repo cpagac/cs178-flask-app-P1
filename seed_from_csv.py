@@ -3,7 +3,6 @@ import pymysql
 import creds
 import sys
 
-# Load the sampled data using the built-in csv module (Very lightweight)
 def seed_database():
     try:
         connection = pymysql.connect(
@@ -21,8 +20,8 @@ def seed_database():
 
     try:
         with connection.cursor() as cursor:
-            # 1. Clear existing data
-            print("Clearing old data...")
+            # 1. Clear old data
+            print("Resetting database schema...")
             cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
             cursor.execute("TRUNCATE TABLE Snippets;")
             cursor.execute("TRUNCATE TABLE Authors;")
@@ -30,7 +29,7 @@ def seed_database():
             cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
             
             # 2. Seed 'General' Category
-            cursor.execute("INSERT INTO Categories (CategoryName) VALUES ('General Content');")
+            cursor.execute("INSERT INTO Categories (name) VALUES ('General Content');")
             category_id = cursor.lastrowid
             
             # 3. Open CSV and process
@@ -45,19 +44,19 @@ def seed_database():
                     model_name = row['model']
                     if model_name not in models:
                         is_ai = 0 if model_name == 'wikipedia' else 1
-                        cursor.execute("INSERT INTO Authors (AuthorName, IsAI) VALUES (%s, %s);", (model_name, is_ai))
+                        cursor.execute("INSERT INTO Authors (name, is_ai) VALUES (%s, %s);", (model_name, is_ai))
                         models[model_name] = cursor.lastrowid
                     rows.append(row)
 
                 print(f"Seeded {len(models)} authors: {list(models.keys())}")
 
                 # 4. Seed Snippets (Batch insert)
-                sql = "INSERT INTO Snippets (SnippetText, CategoryID, AuthorID) VALUES (%s, %s, %s);"
+                sql = "INSERT INTO Snippets (text, category_id, author_id, correct_guesses, incorrect_guesses) VALUES (%s, %s, %s, 0, 0);"
                 batch = []
                 count = 0
                 
                 for r in rows:
-                    text = r['data'][:60000] # Truncate for safety
+                    text = r['data'][:60000] # Truncate for TEXT column safety
                     author_id = models[r['model']]
                     batch.append((text, category_id, author_id))
                     
@@ -71,7 +70,7 @@ def seed_database():
                     count += len(batch)
                 
             connection.commit()
-            print(f"SUCCESS! Seeded {count} snippets into RDS.")
+            print(f"SUCCESS! Seeded {count} snippets with global metrics into RDS.")
 
     except Exception as e:
         print(f"Error during seeding: {e}")
