@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Round Result</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="mb-3">Round Result</h2>
+                        {% if is_correct %}
+                            <div class="alert alert-success">Correct! You picked {{ guessed_label|upper }}.</div>
+                        {% else %}
+                            <div class="alert alert-danger">Not this time. You picked {{ guessed_label|upper }}.</div>
+                        {% endif %}
+
+                        <p class="mb-1"><strong>Actual answer:</strong> {{ actual_label|upper }}</p>
+                        <p class="mb-3"><strong>Author/model:</strong> {{ snippet.author_name }}</p>
+                        <pre class="border rounded p-3 bg-white" style="white-space: pre-wrap;">{{ snippet.text }}</pre>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5>Snippet Stats</h5>
+                                <p class="mb-1">Accuracy: {{ '%.1f'|format(snippet_stats.correct_pct) }}%</p>
+                                <p class="mb-1">Correct guesses: {{ snippet_stats.correct_answers }}</p>
+                                <p class="mb-0">Total guesses: {{ snippet_stats.total_answers }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5>{{ username }}'s Stats</h5>
+                                <p class="mb-1">Current streak: {{ user_stats.current_streak }}</p>
+                                <p class="mb-1">Overall: {{ user_stats.correct_answers }} / {{ user_stats.total_answers }}</p>
+                                <p class="mb-0">Accuracy: {{ '%.1f'|format(user_stats.accuracy_pct) }}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('game') }}" class="btn btn-primary btn-lg">Next Snippet</a>
+                <a href="{{ url_for('leaderboard') }}" class="btn btn-outline-dark btn-lg ml-2">Leaderboard</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

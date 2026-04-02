@@ -2,10 +2,16 @@
 # description: Flask example using redirect, url_for, and flash
 # credit: the template html files were constructed with the help of ChatGPT
 
-from flask import Flask
-from flask import render_template
-from flask import Flask, render_template, request, redirect, url_for, flash
-from dbCode import *
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+from dbCode import (
+    execute_query,
+    get_or_create_user,
+    get_random_snippet,
+    record_answer,
+    get_user_stats,
+    get_snippet_accuracy,
+    get_leaderboard,
+)
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key' # this is an artifact for using flash displays; 
@@ -14,6 +20,101 @@ app.secret_key = 'your_secret_key' # this is an artifact for using flash display
 @app.route('/')
 def home():
     return render_template('home.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        if not username:
+            flash('Please enter a username.', 'warning')
+            return render_template('login.html')
+
+        try:
+            user_id = get_or_create_user(username)
+            session['username'] = username
+            session['user_id'] = user_id
+            return redirect(url_for('game'))
+        except Exception as e:
+            flash(f'Database error: {str(e)}', 'danger')
+            return render_template('login.html')
+
+    return render_template('login.html')
+
+
+@app.route('/game')
+def game():
+    if 'user_id' not in session:
+        flash('Please log in to play.', 'warning')
+        return redirect(url_for('login'))
+
+    try:
+        snippet = get_random_snippet()
+    except Exception as e:
+        flash(f'Database error: {str(e)}', 'danger')
+        snippet = None
+
+    return render_template('arena.html', snippet=snippet, username=session.get('username'))
+
+
+@app.route('/result', methods=['POST'])
+def result():
+    if 'user_id' not in session:
+        flash('Please log in to play.', 'warning')
+        return redirect(url_for('login'))
+
+    snippet_id = request.form.get('snippet_id', type=int)
+    guess = request.form.get('guess', '').lower().strip()
+
+    if not snippet_id or guess not in ('human', 'ai'):
+        flash('Invalid answer submission. Try again.', 'warning')
+        return redirect(url_for('game'))
+
+    try:
+        rows = execute_query(
+            """
+            SELECT s.id, s.text, a.name AS author_name, a.is_ai
+            FROM Snippets s
+            JOIN Authors a ON s.author_id = a.id
+            WHERE s.id = %s
+            """,
+            (snippet_id,),
+        )
+        if not rows:
+            flash('Snippet not found. Try another round.', 'warning')
+            return redirect(url_for('game'))
+
+        snippet = rows[0]
+        actual_label = 'ai' if snippet['is_ai'] else 'human'
+        is_correct = guess == actual_label
+
+        record_answer(session['user_id'], snippet_id, is_correct)
+        user_stats = get_user_stats(session['user_id'])
+        snippet_stats = get_snippet_accuracy(snippet_id)
+
+        return render_template(
+            'result.html',
+            snippet=snippet,
+            guessed_label=guess,
+            actual_label=actual_label,
+            is_correct=is_correct,
+            user_stats=user_stats,
+            snippet_stats=snippet_stats,
+            username=session.get('username'),
+        )
+    except Exception as e:
+        flash(f'Database error: {str(e)}', 'danger')
+        return redirect(url_for('game'))
+
+
+@app.route('/leaderboard')
+def leaderboard():
+    try:
+        board = get_leaderboard()
+        return render_template('leaderboard.html', board=board)
+    except Exception as e:
+        flash(f'Database error: {str(e)}', 'danger')
+        return redirect(url_for('home'))
 
 @app.route('/add-user', methods=['GET', 'POST'])
 def add_user():
@@ -61,12 +162,7 @@ def display_users():
 
 @app.route('/arena')
 def arena():
-    try:
-        snippets = get_all_snippets()
-    except Exception as e:
-        flash(f'Database error: {str(e)}', 'error')
-        snippets = []
-    return render_template('arena.html', snippets=snippets)
+    return redirect(url_for('game'))
 
 
 # these two lines of code should always be the last in the file

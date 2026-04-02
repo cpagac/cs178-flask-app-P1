@@ -25,3 +25,18 @@ CREATE TABLE IF NOT EXISTS Snippets (
     FOREIGN KEY (category_id) REFERENCES Categories(id),
     FOREIGN KEY (author_id)   REFERENCES Authors(id)
 );
+
+CREATE TABLE IF NOT EXISTS Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    snippet_id INT NOT NULL,
+    is_correct BOOLEAN NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id),
+    FOREIGN KEY (snippet_id) REFERENCES Snippets(id)
+);
