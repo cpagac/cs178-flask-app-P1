@@ -139,15 +139,14 @@ def add_user():
 @app.route('/delete-user',methods=['GET', 'POST'])
 def delete_user():
     if request.method == 'POST':
-        # Extract form data
-        name = request.form['name']
-        
-        # Process the data (e.g., add it to a database)
-        # For now, let's just print it to the console
-        print("Name to delete:", name)
-        
-        flash('User deleted successfully! Hoorah!', 'warning') 
-        # Redirect to home page or another page upon successful submission
+        name = request.form['name'].strip()
+        try:
+            from dynamoCode import get_dynamo_table
+            table = get_dynamo_table()
+            table.delete_item(Key={"username": name})
+            flash(f'User "{name}" deleted successfully! Hoorah!', 'warning')
+        except Exception as e:
+            flash(f'Error deleting user: {str(e)}', 'danger')
         return redirect(url_for('home'))
     else:
         # Render the form page if the request method is GET
