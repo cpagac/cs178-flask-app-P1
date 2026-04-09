@@ -52,20 +52,6 @@ def get_all_snippets():
     return execute_query(query)
 
 
-def get_or_create_user(username):
-    """Returns a user id for the given username, creating it when needed."""
-    clean_name = username.strip()
-    if not clean_name:
-        raise ValueError("Username cannot be empty")
-
-    existing = execute_query("SELECT id FROM Users WHERE username = %s", (clean_name,))
-    if existing:
-        return existing[0]["id"]
-
-    execute_write("INSERT INTO Users (username) VALUES (%s)", (clean_name,))
-    created = execute_query("SELECT id FROM Users WHERE username = %s", (clean_name,))
-    return created[0]["id"]
-
 
 def get_random_snippet():
     """Returns one random snippet with author metadata."""

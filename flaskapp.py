@@ -5,13 +5,13 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from dbCode import (
     execute_query,
-    get_or_create_user,
     get_random_snippet,
     record_answer,
     get_user_stats,
     get_snippet_accuracy,
     get_leaderboard,
 )
+from dynamoCode import get_or_create_user, increment_games_played
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key' # this is an artifact for using flash displays; 
@@ -89,6 +89,7 @@ def result():
         is_correct = guess == actual_label
 
         record_answer(session['user_id'], snippet_id, is_correct)
+        increment_games_played(session['username'])
         user_stats = get_user_stats(session['user_id'])
         snippet_stats = get_snippet_accuracy(snippet_id)
 
