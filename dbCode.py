@@ -66,14 +66,14 @@ def get_random_snippet():
     return rows[0] if rows else None
 
 
-def record_answer(user_id, snippet_id, is_correct):
+def record_answer(user_id, username, snippet_id, is_correct):
     """Inserts a user answer and updates snippet counters."""
     execute_write(
         """
-        INSERT INTO Answers (user_id, snippet_id, is_correct)
-        VALUES (%s, %s, %s)
+        INSERT INTO Answers (user_id, username, snippet_id, is_correct)
+        VALUES (%s, %s, %s, %s)
         """,
-        (user_id, snippet_id, int(bool(is_correct))),
+        (user_id, username, snippet_id, int(bool(is_correct))),
     )
 
     if is_correct:
@@ -177,12 +177,11 @@ def get_leaderboard():
     most_correct = execute_query(
         """
         SELECT
-            u.username,
-            SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END) AS correct_answers
-        FROM Users u
-        JOIN Answers a ON a.user_id = u.id
-        GROUP BY u.id, u.username
-        ORDER BY correct_answers DESC, u.username ASC
+            username,
+            SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) AS correct_answers
+        FROM Answers
+        GROUP BY username
+        ORDER BY correct_answers DESC, username ASC
         LIMIT 10
         """
     )
@@ -190,15 +189,14 @@ def get_leaderboard():
     best_accuracy = execute_query(
         """
         SELECT
-            u.username,
+            username,
             COUNT(*) AS total_answers,
-            SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END) AS correct_answers,
-            (SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END) / COUNT(*)) * 100 AS accuracy_pct
-        FROM Users u
-        JOIN Answers a ON a.user_id = u.id
-        GROUP BY u.id, u.username
+            SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) AS correct_answers,
+            (SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) / COUNT(*)) * 100 AS accuracy_pct
+        FROM Answers
+        GROUP BY username
         HAVING COUNT(*) >= 10
-        ORDER BY accuracy_pct DESC, total_answers DESC, u.username ASC
+        ORDER BY accuracy_pct DESC, total_answers DESC, username ASC
         LIMIT 10
         """
     )
@@ -219,24 +217,14 @@ def get_leaderboard():
         """
     )
 
-    users = execute_query("SELECT id, username FROM Users ORDER BY username")
+    users = execute_query("SELECT DISTINCT user_id, username FROM Answers ORDER BY username")
     longest_correct = []
     longest_wrong = []
 
     for user in users:
-        stats = get_user_stats(user["id"])
-        longest_correct.append(
-            {
-                "username": user["username"],
-                "streak": stats["longest_correct_streak"],
-            }
-        )
-        longest_wrong.append(
-            {
-                "username": user["username"],
-                "streak": stats["longest_wrong_streak"],
-            }
-        )
+        stats = get_user_stats(user["user_id"])
+        longest_correct.append({"username": user["username"], "streak": stats["longest_correct_streak"]})
+        longest_wrong.append({"username": user["username"], "streak": stats["longest_wrong_streak"]})
 
     longest_correct.sort(key=lambda row: (-row["streak"], row["username"]))
     longest_wrong.sort(key=lambda row: (-row["streak"], row["username"]))

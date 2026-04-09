@@ -88,7 +88,7 @@ def result():
         actual_label = 'ai' if snippet['is_ai'] else 'human'
         is_correct = guess == actual_label
 
-        record_answer(session['user_id'], snippet_id, is_correct)
+        record_answer(session['user_id'], session['username'], snippet_id, is_correct)
         increment_games_played(session['username'])
         user_stats = get_user_stats(session['user_id'])
         snippet_stats = get_snippet_accuracy(snippet_id)
