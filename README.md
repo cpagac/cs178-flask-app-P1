@@ -109,12 +109,12 @@ The **JOIN query** used in this project retrieves all snippets and connects them
 ---
 
 ## Challenges and Insights
+I didn't really struggle at all but I would like to improve the app with a login and a logout to allow users to use the same username and allow them to play the game again on the same account.
 
-Unknown so far : TDB
 ---
 
 ## AI Assistance
-As of April 1st
 Gemini CLI was utilized to assist with:
 - Generating the initial `schema.sql` and seed data.
 - Writing the SQL JOIN query for the `get_all_snippets` function in `dbCode.py`.
+- This ReadMe started from an AI generated Template.
